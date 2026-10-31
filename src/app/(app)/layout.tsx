@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(v.isManager || v.isHr ? [{ href: "/approvals", label: "Approvals", icon: "✓" }] : []),
     ...(v.isHr ? [{ href: "/employees", label: "Employees", icon: "☰" }] : []),
     ...(v.isManager || v.isHr ? [{ href: "/reports", label: "Reports", icon: "▤" }] : []),
-    { href: "/ask", label: "Ask HR", icon: "✎" },
+    ...(process.env.GROQ_API_KEY ? [{ href: "/ask", label: "Ask HR", icon: "✎" }] : []),
     ...(v.isHr ? [{ href: "/settings", label: "Settings", icon: "⚙" }] : []),
   ];
   const mobile = items.filter((i) => ["/", "/attendance", "/leave", "/ask"].includes(i.href));
