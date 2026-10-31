@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konkan People – HRMS demo</title>
+<style>
+  :root{--primary:#0b0b14;--interactive:#be185d;--accent:#1d4ed8;--page:#f8f6fb;--text:#1e1b2e;--border:#e4dff0}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--page);color:var(--text);display:flex;min-height:100vh}
+  nav{width:230px;background:var(--primary);padding:14px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+  nav .logo{color:#fff;font-weight:700;font-size:18px;margin:4px 8px 18px}
+  nav .logo span{color:#f472b6}
+  nav button{background:none;border:0;color:#fff;text-align:left;padding:10px 12px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer}
+  nav button:hover{background:rgba(255,255,255,.1)}
+  nav button.on{background:var(--interactive)}
+  .wrap{flex:1;min-width:0;display:flex;flex-direction:column}
+  header{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;justify-content:space-between;font-size:14px;color:#475569}
+  header b{color:var(--accent)}
+  main{padding:22px;max-width:1000px;width:100%;margin:0 auto}
+  h1{margin:0 0 4px;font-size:26px}
+  h2{font-size:17px;margin:26px 0 10px}
+  .sub{color:#64748b;font-size:14px;margin:0 0 18px}
+  .screen{display:none}.screen.on{display:block}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px}
+  .card .l{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+  .card .v{font-size:28px;font-weight:700;color:var(--accent);margin-top:2px}
+  .card .n{font-size:12px;color:#64748b}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-top:1px solid var(--border)}
+  th{border-top:0;font-size:12px;color:#64748b;text-transform:uppercase}
+  .btn{background:var(--interactive);color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:600;font-size:14px;cursor:pointer}
+  .btn.sec{background:#fff;color:var(--text);border:1px solid var(--border)}
+  .btn.ok{background:#166534}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+  .pend{background:#fef3c7;color:#92400e}.appr{background:#dcfce7;color:#166534}.rej{background:#fee2e2;color:#991b1b}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal .h{font-size:12px;font-weight:600;color:#64748b;text-align:center}
+  .day{min-height:64px;border-radius:6px;padding:4px 6px;font-size:11px;border:1px solid transparent;position:relative}
+  .day b{display:block;font-size:12px}.day em{font-style:normal;font-size:15px;font-weight:700;display:block;margin-top:4px}
+  .P{background:#dcfce7;color:#166534}.H{background:#fef3c7;color:#92400e}.A{background:#fee2e2;color:#991b1b}
+  .L{background:#dbeafe;color:#1e40af}.HOL{background:#ede9fe;color:#5b21b6}.WO{background:#f1f5f9;color:#475569}
+  .PR{background:#fce7f3;color:#9d174d;border:1.5px dashed #9d174d}.E{background:#fff;color:#94a3b8;border-color:var(--border)}
+  .HL{background:linear-gradient(135deg,#dbeafe 50%,#dcfce7 50%);color:#1e3a8a}
+  .late::after{content:"L";position:absolute;top:0;right:0;background:#c2410c;color:#fff;font-size:9px;width:14px;height:14px;text-align:center;border-bottom-left-radius:5px}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:12px}
+  .legend span{padding:2px 8px;border-radius:4px}
+  label{display:block;font-size:14px;margin-bottom:12px}
+  label span{display:block;font-weight:600;margin-bottom:4px}
+  input,select,textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font:inherit}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent)}
+  .steps{display:flex;gap:8px;margin-bottom:16px;font-size:13px}
+  .steps div{flex:1;padding:8px;border-radius:6px;background:#fff;border:1px solid var(--border);text-align:center}
+  .steps .cur{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .mask{font-family:ui-monospace,monospace}
+  .chat{min-height:200px}
+  .u{background:var(--accent);color:#fff;margin-left:auto}.b{background:#f1f5f9}
+  .msg{max-width:80%;padding:9px 12px;border-radius:10px;font-size:14px;margin:8px 0}
+  .note{font-size:12px;color:#64748b;margin-top:24px}
+  @media(max-width:700px){nav{width:70px}nav button{font-size:0}nav button::first-letter{font-size:18px}.logo{font-size:0}}
+</style>
+</head>
+<body>
+<nav aria-label="Main">
+  <div class="logo"><span>≈</span> Konkan People</div>
+  <button class="on" data-s="dash">⌂ Dashboard</button>
+  <button data-s="att">◷ My attendance</button>
+  <button data-s="leave">✈ My leave</button>
+  <button data-s="apply">＋ Apply leave</button>
+  <button data-s="appr">✔ Approvals</button>
+  <button data-s="emp">☰ Employees</button>
+  <button data-s="rep">▤ Reports</button>
+  <button data-s="ask">✎ Ask HR</button>
+</nav>
+<div class="wrap">
+<header><span>Saturday, 31 October 2026 · IST</span><span><b>Priya Desai</b> · KCF0008 · Employee · Panaji</span></header>
+<main>
+
+<!-- DASHBOARD -->
+<section class="screen on" id="dash">
+  <h1>Hello, Priya</h1><p class="sub">Senior Accountant · Finance · Panaji head office</p>
+  <div class="row" style="margin-bottom:16px">
+    <button class="btn" onclick="this.textContent='Checked in 09:55 ✓';this.className='btn ok'">Check in</button>
+    <button class="btn sec">Check out</button>
+    <button class="btn sec">Work from home</button>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="l">Casual leave</div><div class="v">1.5</div><div class="n">days available</div></div>
+    <div class="card"><div class="l">Sick leave</div><div class="v">5</div><div class="n">days available</div></div>
+    <div class="card"><div class="l">Earned leave</div><div class="v">19.5</div><div class="n">12 opening + 12.5 accrued − 5 used</div></div>
+    <div class="card"><div class="l">Optional holiday</div><div class="v">1</div><div class="n">available</div></div>
+    <div class="card"><div class="l">Late marks</div><div class="v">1 / 3</div><div class="n">this month</div></div>
+  </div>
+  <h2>Needs attention</h2>
+  <div class="card"><b>27 Oct</b> – forgot to check out. Regularisation request is <span class="badge pend">Pending</span> with Anita Naik.</div>
+</section>
+
+<!-- ATTENDANCE -->
+<section class="screen" id="att">
+  <h1>My attendance</h1><p class="sub">October 2026 · Panaji: Saturday and Sunday off</p>
+  <div class="card"><div class="cal" id="cal"></div>
+    <div class="legend">
+      <span class="P">P Present</span><span class="H">H Half day</span><span class="A">A Absent</span><span class="L">CL/SL/EL/OH Leave</span>
+      <span class="HOL">Holiday</span><span class="WO">WO Weekly off</span><span class="PR">? Pending regularisation</span><span style="background:#c2410c;color:#fff">L Late</span>
+    </div>
+  </div>
+</section>
+
+<!-- LEAVE -->
+<section class="screen" id="leave">
+  <h1>My leave</h1><p class="sub">Balances are calculated live – never stored.</p>
+  <div class="card"><table>
+    <tr><th>Type</th><th>Available</th><th>Used / pending</th></tr>
+    <tr><td>Casual (CL)</td><td>1.5</td><td>2.5 used · 0 pending</td></tr>
+    <tr><td>Sick (SL)</td><td>5</td><td>0 used · 0 pending</td></tr>
+    <tr><td>Earned (EL)</td><td>19.5</td><td>5 used · 0 pending</td></tr>
+    <tr><td>Optional holiday (OH)</td><td>1</td><td>1 used · 0 pending</td></tr>
+  </table></div>
+  <h2>My requests</h2>
+  <div class="card"><table>
+    <tr><th>Dates</th><th>Type</th><th>Days</th><th>Status</th></tr>
+    <tr><td>12–13 Oct</td><td>CL</td><td>2</td><td><span class="badge appr">Approved</span></td></tr>
+    <tr><td>20 Oct</td><td>OH (Dussehra)</td><td>1</td><td><span class="badge appr">Approved</span></td></tr>
+    <tr><td>22 Oct (first half)</td><td>CL</td><td>0.5</td><td><span class="badge appr">Approved</span></td></tr>
+  </table></div>
+</section>
+
+<!-- APPLY -->
+<section class="screen" id="apply">
+  <h1>Apply for leave</h1><p class="sub">The system counts working days and checks your balance before you submit.</p>
+  <div class="steps"><div class="cur">1 · Details</div><div>2 · Preview</div><div>3 · Confirm</div></div>
+  <div class="card">
+    <label><span>Leave type</span><select id="lt"><option>Casual leave (CL)</option><option>Sick leave (SL)</option><option>Earned leave (EL)</option></select></label>
+    <div class="row"><label style="flex:1"><span>From</span><input type="date" value="2026-11-09" id="f"></label><label style="flex:1"><span>To</span><input type="date" value="2026-11-10" id="t"></label></div>
+    <label><span>Reason</span><textarea rows="2">Family function</textarea></label>
+    <button class="btn" onclick="document.getElementById('pv').style.display='block'">Preview</button>
+  </div>
+  <div class="card" id="pv" style="display:none;margin-top:12px;border-color:var(--accent)">
+    <b>Preview</b>
+    <p style="margin:6px 0">Working days: <b>2</b> (9–10 Nov, no weekly offs or holidays in range)</p>
+    <p style="margin:6px 0">CL balance: 1.5 → shortfall <b>0.5 day will be Loss of Pay</b></p>
+    <button class="btn" onclick="this.textContent='Submitted – request saved ✓';this.className='btn ok'">Submit to Anita Naik</button>
+  </div>
+</section>
+
+<!-- APPROVALS -->
+<section class="screen" id="appr">
+  <h1>Approvals</h1><p class="sub">Manager view (Anita Naik) – you can never approve your own request.</p>
+  <div class="card"><table>
+    <tr><th>Employee</th><th>Request</th><th>Reason</th><th></th></tr>
+    <tr><td>Priya Desai</td><td>Regularisation · 27 Oct · 09:58–18:45</td><td>Forgot to check out</td>
+      <td><button class="btn ok" onclick="this.parentNode.innerHTML='<span class=&quot;badge appr&quot;>Approved</span>'">Approve</button> <button class="btn sec">Reject</button></td></tr>
+    <tr><td>Rahul Fernandes</td><td>CL · 3 Nov · 1 day</td><td>Personal work</td>
+      <td><button class="btn ok" onclick="this.parentNode.innerHTML='<span class=&quot;badge appr&quot;>Approved</span>'">Approve</button> <button class="btn sec">Reject</button></td></tr>
+  </table></div>
+</section>
+
+<!-- EMPLOYEES -->
+<section class="screen" id="emp">
+  <h1>Employees</h1><p class="sub">HR Admin view · statutory data is masked unless HR reveals it (and every reveal is logged).</p>
+  <div class="card"><table>
+    <tr><th>Code</th><th>Name</th><th>Role</th><th>Site</th><th>Status</th></tr>
+    <tr><td>KCF0001</td><td>Vikram Sardesai</td><td>MD</td><td>Panaji</td><td><span class="badge appr">Active</span></td></tr>
+    <tr><td>KCF0002</td><td>Meera Kamat</td><td>HR Admin</td><td>Panaji</td><td><span class="badge appr">Active</span></td></tr>
+    <tr><td>KCF0008</td><td>Priya Desai</td><td>Senior Accountant</td><td>Panaji</td><td><span class="badge appr">Active</span></td></tr>
+    <tr><td>KCF0014</td><td>Suresh Gawas</td><td>Operator</td><td>Verna</td><td><span class="badge appr">Active</span></td></tr>
+    <tr><td>KCF0019</td><td>Neha Kerkar</td><td>—</td><td>—</td><td><span class="badge rej">Left 30 Sep</span></td></tr>
+  </table></div>
+  <h2>Statutory details (masked)</h2>
+  <div class="card mask">PAN: XXXXX1234X &nbsp; · &nbsp; Aadhaar: XXXX XXXX 4821 &nbsp; · &nbsp; Bank a/c: XXXXXXXX7790
+    <div style="margin-top:10px"><button class="btn sec">Reveal (logged)</button></div></div>
+</section>
+
+<!-- REPORTS -->
+<section class="screen" id="rep">
+  <h1>Month-end report</h1><p class="sub">Payroll attendance CSV. Once HR finalises a month it never changes; later corrections appear as adjustments in the next month.</p>
+  <div class="card"><table>
+    <tr><th>Code</th><th>Name</th><th>Present</th><th>Leave</th><th>LOP</th></tr>
+    <tr><td>KCF0008</td><td>Priya Desai</td><td>17.5</td><td>3.5</td><td>0.0</td></tr>
+    <tr><td>KCF0014</td><td>Suresh Gawas</td><td>24.0</td><td>0.0</td><td>0.0</td></tr>
+  </table>
+  <div class="row" style="margin-top:12px"><button class="btn">Download CSV</button><button class="btn sec">Finalise month (HR)</button></div></div>
+</section>
+
+<!-- ASK HR -->
+<section class="screen" id="ask">
+  <h1>Ask HR</h1><p class="sub">Read-only assistant. It can look things up but never approves or changes anything.</p>
+  <div class="card chat">
+    <div class="msg u">How many earned leave days do I have?</div>
+    <div class="msg b">You have <b>19.5 days</b> of earned leave available (12 opening + 12.5 accrued − 5 used).</div>
+    <div class="msg u">Who is my manager?</div>
+    <div class="msg b">Your manager is <b>Anita Naik</b>, Finance Manager.</div>
+  </div>
+</section>
+
+<p class="note">Sample data from the project's seed. Colours: black sidebar, pink actions, blue figures and links. Attendance status colours keep their meaning.</p>
+</main>
+</div>
+<script>
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===b.dataset.s));
+});
+// October 2026 calendar: 1 Oct is a Thursday
+const cal=document.getElementById('cal');
+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>cal.insertAdjacentHTML('beforeend',`<div class="h">${d}</div>`));
+for(let i=0;i<3;i++)cal.insertAdjacentHTML('beforeend','<div></div>');
+for(let d=1;d<=31;d++){
+  const dow=(3+d-1)%7; // 0=Mon
+  let c='P',t='P',x='';
+  if(dow>=5){c='WO';t='WO'}
+  else if(d===2){c='HOL';t='Gandhi Jayanti'}
+  else if(d===12||d===13){c='L';t='CL'}
+  else if(d===20){c='L';t='OH'}
+  else if(d===21){c='A';t='A'}
+  else if(d===22){c='HL';t='CL½+P'}
+  else if(d===27){c='PR';t='?'}
+  else if(d===8){c='H';t='H'}
+  else if(d===6){x=' late'}
+  else if(d===31){c='E';t=''}
+  cal.insertAdjacentHTML('beforeend',`<div class="day ${c}${x}"><b>${d}</b><em style="${t.length>3?'font-size:10px':''}">${t}</em></div>`);
+}
+</script>
+</body>
+</html>
