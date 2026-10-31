@@ -516,6 +516,7 @@ Code is grouped by module rather than by layer, because each module's rules, dat
 | [sign-off date] | Faculty sign-off received on RESEARCH.md, ARCHITECTURE.md and DESIGN.md | Gate for checkpoint 3 |
 | 29 Oct 2026 | Checkpoint 3 infrastructure: Supabase project `konkan-people` in ap-south-1 (Mumbai; closest region to Goa), separate from PMS and ATS; Clerk app `Konkan People` (development instance), session tokens carry `role: authenticated`; a temporary smoke-test migration (`debug_whoami`, `rls_probe`), checked in a rolled-back dry run (user B saw only their own row), to be dropped in checkpoint 4 | Prove that the Clerk identity and RLS work in Postgres before building HR tables |
 | 29 Oct 2026 | Supabase moved to a new account (college email). A new `konkan-people` project in ap-south-1 (ref `sezbfnxbplgvalkudcdq`) replaces the first one; the same smoke-test migration was re-applied and re-checked, and Vercel now points at the new project | Account change by the project owner; architecture unchanged |
+| 31 Oct 2026 | Database platform changes from Supabase to Neon (Postgres), project `hrms` in the org `org-jolly-feather-03058632`. Supabase is dropped completely: no `@supabase/supabase-js`, no `supabase/` folder, no Supabase Storage. Clerk stays. The detailed plan is in `docs/neon-migration-plan.md` and is not yet approved | Decision by the project owner; checkpoint 3 was stuck on Supabase's Clerk token step, and the owner's new Neon account is ready |
 
 ## 11. Traceability: graded feature → rule → implementation → test
 
