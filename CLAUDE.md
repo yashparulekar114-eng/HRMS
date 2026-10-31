@@ -17,15 +17,15 @@ Follow DESIGN.md for every screen. If a change departs from ARCHITECTURE.md, sto
 
 ## Stack
 
-Next.js (App Router) on Vercel · Supabase Postgres · Clerk (Supabase third-party auth) · Resend · Vercel AI SDK with Groq `openai/gpt-oss-120b` (fallback: Gemini Flash-Lite) · Zod · Vitest.
+Next.js (App Router) on Vercel · Neon Postgres · Clerk · Resend · Vercel AI SDK with Groq `openai/gpt-oss-120b` (fallback: Gemini Flash-Lite) · Zod · Vitest.
 
 ## Folder rules
 
 - `src/app/`: routing only, no business logic.
 - `src/modules/<module>/`: `service.ts`, `repository.ts`, `schemas.ts`, `components/`. Modules: employees, attendance, leave, holidays, reports, agent.
-- `src/lib/`: auth, supabase clients, `dates` (IST helpers), permissions.
-- `supabase/migrations/`: all tables, RLS policies, functions and triggers. The schema is never edited by hand in the dashboard.
-- `tests/<module>/`: one test per checklist item (see the ARCHITECTURE.md traceability table).
+- `src/lib/`: `auth` (viewer), `db` (per-request database access), `dates` (IST helpers), `actions` (error mapping).
+- `db/migrations/`: all tables, RLS policies, functions and triggers, applied by `npm run db:migrate`. The schema is never edited by hand in the Neon console. `db/seed.sql` is the sample data.
+- `tests/db/` (SQL, real Postgres), `tests/lib`, `tests/reports`, `tests/agent`: one test per checklist item (see the ARCHITECTURE.md traceability table).
 
 ## Rules you must never break
 
@@ -37,8 +37,8 @@ Next.js (App Router) on Vercel · Supabase Postgres · Clerk (Supabase third-par
    - Keys go in `.env.local` (git-ignored) and in Vercel's environment variables.
    - `.env.example` has blank values only.
    - Never print keys in logs.
-3. **Never use the Supabase service-role key** in request handlers, server actions or agent tools. Every query uses the signed-in user's Clerk token (`accessToken: () => session.getToken()`), so RLS applies.
-4. **Identify the user with `auth.jwt()->>'sub'`,** matched to `employees.clerk_user_id`. `auth.uid()` does not work with Clerk IDs. Tables join on `employees.id` (a UUID).
+3. **Never use the database owner connection** in request handlers, server actions or agent tools. The app connects as the limited role `app_user` and, per request, runs `SET LOCAL ROLE authenticated` with the verified Clerk claims in `request.jwt.claims` (`src/lib/db/server.ts`), so RLS applies. `DATABASE_URL_DIRECT` (owner) is for `npm run db:migrate` only.
+4. **Identify the user with `current_sub()`** (reads `request.jwt.claims`->>'sub'), matched to `employees.clerk_user_id`. Tables join on `employees.id` (a UUID).
 5. **Roles come from the database only:** `is_hr_admin`, and Manager = the reporting manager of at least one active employee. Never read roles from Clerk metadata.
 6. **Writes to core tables go only through Postgres functions.** Every function:
    - is `SECURITY DEFINER`
@@ -67,7 +67,7 @@ Next.js (App Router) on Vercel · Supabase Postgres · Clerk (Supabase third-par
     - Never show "approved" or "updated" based on the model's text.
 15. **Whether a date is a working day comes only from `location_calendar` in SQL.** TypeScript day-status code reads it; never reimplement weekly-off or holiday logic in TypeScript.
 16. **No self-approval anywhere:** leave, regularisation or correction. ML is approved only by HR, and only HR sets `confirmed_weeks`.
-17. **Certificates:** private `medical-certificates` bucket, path `<clerk_user_id>/<file_id>`. Accept a file only if it exists, sits in the caller's folder, and its `owner_id` equals `auth.jwt()->>'sub'` (unowned service-key uploads are rejected). Never trust a path from the client on its own, and never send the service key to the browser.
+17. **Certificates:** stored in the private `medical_certificates` table (RLS: owner, HR, and the approver of a request that cites the file), path `<clerk_user_id>/<file_id>`. `upload_certificate` takes the owner from the token, accepts PDF/JPG/PNG up to 2 MB, and `apply_leave` accepts only a path whose owner is the caller. Files are served by `/api/certificates/...` under the caller's RLS.
 18. **Agent limits:**
     - Create the question (30 per IST day) before any model call.
     - Reserve a numbered slot (1–5) atomically before every tool call, including parallel ones.
@@ -87,13 +87,13 @@ Next.js (App Router) on Vercel · Supabase Postgres · Clerk (Supabase third-par
 - **Tests first.** Turn the checklist item into a failing test in `tests/`, then implement until it passes. Run `npm test` before saying a task is done.
 - **Run tests in another time zone too:** `TZ=America/New_York npm test`.
 - **Run the agent prompts** after any agent change: `npm run test:agent`.
-- **Never run `supabase db reset`, drop tables, or delete data without asking.** Never commit `.env*` files except `.env.example`.
+- **Never reset the database, drop tables, or delete data without asking.** Never commit `.env*` files except `.env.example`.
 - **One checkpoint per commit,** with a clear message. Push only when asked.
 - **Explain the rule after implementing it.** For example, after writing `count_working_days`, explain how it treats weekly offs, holidays and ML.
 
 ## Seed data
 
-`supabase/seed.sql` must match DESIGN.md "Sample data" exactly:
+`db/seed.sql` must match DESIGN.md "Sample data" exactly:
 
 - 2 locations, 4 departments
 - 20 employees: 1 HR Admin, and 3 managers (worked out from reporting lines)
@@ -102,4 +102,4 @@ Next.js (App Router) on Vercel · Supabase Postgres · Clerk (Supabase third-par
 
 ## Commands
 
-`npm run dev` · `npm test` · `npm run test:agent` · `supabase start` (needs Docker) · `supabase migration new <name>`
+`npm run dev` · `npm test` · `npm run test:db` (needs `TEST_DATABASE_URL`) · `npm run test:agent` (needs model keys) · `npm run db:migrate` · `npm run db:seed` · new migration: add `db/migrations/NNNN_name.sql`

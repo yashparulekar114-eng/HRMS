@@ -4,9 +4,9 @@ export const TEST_DB = process.env.TEST_DATABASE_URL;
 export const pool = TEST_DB ? new pg.Pool({ connectionString: TEST_DB, max: 4 }) : (null as unknown as pg.Pool);
 
 export type Session = {
-  q: <T = any>(sql: string, params?: unknown[]) => Promise<T[]>;
-  one: <T = any>(sql: string, params?: unknown[]) => Promise<T>;
-  fails: (sql: string, params?: unknown[]) => Promise<string>;
+  q: <T = any>(sql: string, params?: readonly unknown[]) => Promise<T[]>;
+  one: <T = any>(sql: string, params?: readonly unknown[]) => Promise<T>;
+  fails: (sql: string, params?: readonly unknown[]) => Promise<string>;
   as: (code: string | null, claims?: Record<string, unknown>) => Promise<void>;
   owner: () => Promise<void>;
   setNow: (iso: string) => Promise<void>;
@@ -17,13 +17,13 @@ export type Session = {
 export async function withTx(fn: (s: Session) => Promise<void>, now = "2026-10-31 12:00+05:30") {
   const c = await pool.connect();
   let authed = false;
-  const exec = async (sql: string, params?: unknown[]) => (await c.query(sql, params as any[])).rows;
+  const exec = async (sql: string, params?: readonly unknown[]) => (await c.query(sql, params as any)).rows;
   const s: Session = {
     q: exec,
     one: async (sql, params) => (await exec(sql, params))[0],
     fails: async (sql, params) => {
       await c.query("savepoint s");
-      try { await c.query(sql, params as any[]); } catch (e: any) { await c.query("rollback to savepoint s"); return e.message as string; }
+      try { await c.query(sql, params as any); } catch (e: any) { await c.query("rollback to savepoint s"); return e.message as string; }
       await c.query("release savepoint s");
       throw new Error("expected the statement to fail: " + sql);
     },

@@ -1,10 +1,12 @@
 # ARCHITECTURE.md — Konkan People
 
+> **Platform update, 31 Oct 2026: the database is Neon Postgres, not Supabase.** Read every "Supabase" below as "Neon" unless this note says otherwise. What changed in practice: queries go through `src/lib/db/server.ts` (limited role `app_user`, `SET LOCAL ROLE authenticated`, Clerk claims in `request.jwt.claims`, read by `current_sub()`); migrations live in `db/migrations`; certificates are stored in the `medical_certificates` table (no Storage bucket); day status and the month-end CSV are computed in SQL (`_day_info`, `_build_csv`) because finalising must be one transaction, and TypeScript only renders them. See the decision log.
+
 > Status: draft for faculty sign-off · Author: Yash Parulekar · Rule IDs (A1, G2, J6…) refer to RESEARCH.md "Leave and attendance policy as rules".
 
 **In one paragraph:**
 
-- **Stack:** a modular Next.js app on Vercel, with Supabase Postgres, Clerk sign-in and Resend email.
+- **Stack:** a modular Next.js app on Vercel, with Neon Postgres, Clerk sign-in and Resend email.
 - **AI assistant:** Groq's open-weight `gpt-oss-120b` through the Vercel AI SDK, with Gemini Flash-Lite as a free fallback. Eight narrowly scoped tools.
 - **Business rules and permissions** are enforced in Postgres; checks in the Next.js server add a second layer.
 - **Code** is grouped by HR module.
@@ -15,8 +17,8 @@
 | --- | --- | --- | --- |
 | Framework | Next.js (App Router) | UI, server actions and API routes in one repo | Separate React + Express: two deployments for no benefit |
 | Hosting | Vercel Hobby | No servers to patch. Hobby is non-commercial only, which fits a student project. | VMs (e.g. EC2): patching and DevOps work |
-| Database | Supabase (Postgres) | Relational data with constraints in the database and row-level security | **MongoDB:** it has unique indexes and schema validation, but no foreign keys (a leave request could point to an employee who doesn't exist) and no database-level access rules |
-| Auth | Clerk, connected to Supabase as a third-party auth provider | Database security rules can read the Clerk user from the session token | Supabase Auth: fine, but the brief's default stack is Clerk |
+| Database | Neon (Postgres) | Relational data with constraints in the database and row-level security | **MongoDB:** it has unique indexes and schema validation, but no foreign keys (a leave request could point to an employee who doesn't exist) and no database-level access rules |
+| Auth | Clerk; the verified Clerk token's claims are passed to Postgres per request | Database security rules read the Clerk user through `current_sub()` | Neon Auth / Supabase Auth: the brief's default stack is Clerk |
 | Email | Resend | Free tier: 3,000 a month, 100 a day | — |
 | AI | Groq `openai/gpt-oss-120b` via `ai` + `@ai-sdk/groq`, with Zod tool schemas | Free tier: 30 requests a minute, 1,000 a day, 8K tokens a minute. Supports tool calling. | Paid APIs (they break the free-tier rule); LangChain (more than a fixed set of 8 tools needs) |
 | AI fallback | Gemini Flash-Lite via `@ai-sdk/google` (current model name checked in AI Studio) | Free tier; switching provider is one line with the AI SDK | — |
@@ -517,6 +519,12 @@ Code is grouped by module rather than by layer, because each module's rules, dat
 | 29 Oct 2026 | Checkpoint 3 infrastructure: Supabase project `konkan-people` in ap-south-1 (Mumbai; closest region to Goa), separate from PMS and ATS; Clerk app `Konkan People` (development instance), session tokens carry `role: authenticated`; a temporary smoke-test migration (`debug_whoami`, `rls_probe`), checked in a rolled-back dry run (user B saw only their own row), to be dropped in checkpoint 4 | Prove that the Clerk identity and RLS work in Postgres before building HR tables |
 | 29 Oct 2026 | Supabase moved to a new account (college email). A new `konkan-people` project in ap-south-1 (ref `sezbfnxbplgvalkudcdq`) replaces the first one; the same smoke-test migration was re-applied and re-checked, and Vercel now points at the new project | Account change by the project owner; architecture unchanged |
 | 31 Oct 2026 | Database platform changes from Supabase to Neon (Postgres), project `hrms` in the org `org-jolly-feather-03058632`. Supabase is dropped completely: no `@supabase/supabase-js`, no `supabase/` folder, no Supabase Storage. Clerk stays. The detailed plan is in `docs/neon-migration-plan.md` and is not yet approved | Decision by the project owner; checkpoint 3 was stuck on Supabase's Clerk token step, and the owner's new Neon account is ready |
+| 31 Oct 2026 | **Data path:** the app connects as the limited login role `app_user` and, inside one transaction per request, runs `SET LOCAL ROLE authenticated` and `set_config('request.jwt.claims', <verified Clerk claims>, true)`. RLS and `SECURITY DEFINER` functions are unchanged and read the caller through `current_sub()`. The Neon Data API was not used because it could not be verified or tested in the build environment; the same SQL works behind it later | Testable end to end on any Postgres; no REST layer to depend on |
+| 31 Oct 2026 | **Certificates** are stored in the `medical_certificates` table (PDF/JPG/PNG, 2 MB), private under RLS, instead of a Storage bucket | No extra service; ownership is enforced by the same token path as everything else |
+| 31 Oct 2026 | **Day status and the CSV are computed in SQL** (`_day_info`, `_day_buckets`, `_month_rows`, `_build_csv`); `location_calendar` remains the single source for working days. TypeScript renders the results and builds only the manager CSV (from `get_team_month_summary`) | `hr_finalise_month` must be one transaction, so it needs the same logic in SQL |
+| 31 Oct 2026 | Anita Naik and Sanjay Prabhu report to Vikram Sardesai in the seed (rule H2), so only the MD's leave is auto-approved | DESIGN.md left their manager blank |
+| 31 Oct 2026 | PL is modelled as a 5-day lump-sum quota per year (not pro-rated); ML is unlimited and confirmed by HR. Late LOP is not part of payroll adjustments (only day buckets and Absent/LOP leave are) | Smallest model that satisfies A2 and L7 |
+| 31 Oct 2026 | Add-employee is one page with five sections and inline validation (Zod, mirroring the database CHECKs) rather than a stepper | Same validation, less client code |
 
 ## 11. Traceability: graded feature → rule → implementation → test
 

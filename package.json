@@ -9,14 +9,19 @@
     "test": "vitest run",
     "test:ist": "TZ=America/New_York vitest run",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
-    "db:seed": "node --env-file-if-exists=.env.local scripts/migrate.mjs --seed"
+    "db:seed": "node --env-file-if-exists=.env.local scripts/migrate.mjs --seed",
+    "test:agent": "RUN_AGENT=1 vitest run tests/agent/prompts.live.test.ts",
+    "test:db": "vitest run tests/db"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.109",
+    "@ai-sdk/groq": "^4.0.74",
     "@clerk/nextjs": "^6.20.0",
-    "@supabase/supabase-js": "^2.50.0",
+    "ai": "^7.0.159",
     "next": "~15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "server-only": "^0.0.1",
     "zod": "^3.24.0"
   },
   "devDependencies": {

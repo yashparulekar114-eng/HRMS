@@ -103,19 +103,16 @@ begin
   return _leave_check(me(), p_type, p_from, p_to, p_half, p_period, p_weeks);
 end $$;
 
-create function public.register_certificate(p_path text) returns uuid
+-- Certificates live in a private table (RLS: owner, HR, and whoever can see the request that cites the file).
+-- The path is <clerk_user_id>/<file_id>; the caller is taken from the token, never from the path (CLAUDE.md rule 17).
+create function public.upload_certificate(p_file_id uuid, p_content_type text, p_content bytea) returns text
 language plpgsql security definer set search_path = public as $$
-declare v_id uuid;
+declare v_path text;
 begin
   if me() is null then raise exception 'Not signed in as an active employee' using errcode = '42501'; end if;
-  if p_path is null or p_path not like current_sub() || '/%' then
-    raise exception 'The certificate must be in your own folder' using errcode = '42501';
-  end if;
-  insert into medical_certificates (owner_sub, path) values (current_sub(), p_path)
-    on conflict (path) do update set path = excluded.path where medical_certificates.owner_sub = current_sub()
-    returning id into v_id;
-  if v_id is null then raise exception 'That certificate belongs to someone else' using errcode = '42501'; end if;
-  return v_id;
+  v_path := current_sub() || '/' || p_file_id::text;
+  insert into medical_certificates (owner_sub, path, content_type, content) values (current_sub(), v_path, p_content_type, p_content);
+  return v_path;
 end $$;
 
 create function public.apply_leave(
@@ -253,6 +250,6 @@ begin
   return jsonb_build_object('status', 'saved', 'id', r.id);
 end $$;
 
-grant execute on function public.preview_leave(text,date,date,boolean,text,int), public.register_certificate(text),
+grant execute on function public.preview_leave(text,date,date,boolean,text,int), public.upload_certificate(uuid,text,bytea),
   public.apply_leave(text,date,date,boolean,text,text,text,boolean,int), public.process_leave_request(uuid,text,text,int),
   public.cancel_my_leave(uuid), public.hr_shorten_leave(uuid,date,text) to authenticated;

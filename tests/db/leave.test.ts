@@ -56,13 +56,18 @@ describe.skipIf(!TEST_DB)("leave (RESEARCH E-I)", () => {
       expect((await s.one(...PRE("SL", "2026-11-13", "2026-11-16"))).p.needs_certificate).toBe(false);   // Fri + Mon = 2
       expect((await s.one(...PRE("SL", "2026-11-12", "2026-11-16"))).p.needs_certificate).toBe(true);    // Thu, Fri, Mon = 3
       expect(await s.fails(...apply("SL", "2026-11-12", "2026-11-16"))).toMatch(/certificate/i);
-      expect(await s.fails("select register_certificate('user_KCF0003/file1')")).toMatch(/own folder/);
-      await s.q("select register_certificate('user_KCF0008/file1')");
-      const r = (await s.one(...apply("SL", "2026-11-12", "2026-11-16", { cert: "user_KCF0008/file1" }))).r;
+      const fid = "11111111-1111-1111-1111-111111111111";
+      expect(await s.fails("select upload_certificate($1,'text/html',$2)", [fid, Buffer.from("x")])).toMatch(/check constraint/);
+      const path = (await s.one("select upload_certificate($1,'application/pdf',$2) p", [fid, Buffer.from("%PDF-1.4")])).p;
+      expect(path).toBe("user_KCF0008/" + fid);
+      const r = (await s.one(...apply("SL", "2026-11-12", "2026-11-16", { cert: path }))).r;
       expect(r.status).toBe("saved");
       // someone else's certificate cannot be reused
       await s.as(KCF.SURESH);
-      expect(await s.fails(...apply("SL", "2026-11-12", "2026-11-16", { cert: "user_KCF0008/file1" }))).toMatch(/certificate/i);
+      expect(await s.fails(...apply("SL", "2026-11-12", "2026-11-16", { cert: path }))).toMatch(/certificate/i);
+      expect((await s.q("select 1 from medical_certificates")).length).toBe(0);       // not even visible to Suresh
+      await s.as(KCF.ANITA);
+      expect((await s.q("select 1 from medical_certificates")).length).toBe(1);       // visible to the approver of the request that cites it
     });
   });
 

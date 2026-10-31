@@ -158,6 +158,8 @@ create table public.medical_certificates (
   id uuid primary key default gen_random_uuid(),
   owner_sub text not null,
   path text not null unique,
+  content_type text not null check (content_type in ('application/pdf','image/jpeg','image/png')),
+  content bytea not null check (octet_length(content) between 1 and 2097152),   -- 2 MB
   created_at timestamptz not null default now(),
   check (path like owner_sub || '/%')
 );

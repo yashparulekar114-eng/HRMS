@@ -1,9 +1,0 @@
-# Supabase CLI config for local development (`supabase start`).
-project_id = "konkan-people"
-
-[db]
-major_version = 17
-
-[auth.third_party.clerk]
-enabled = true
-domain = "major-goblin-73.clerk.accounts.dev"
