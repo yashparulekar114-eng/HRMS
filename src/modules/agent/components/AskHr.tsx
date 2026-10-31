@@ -60,7 +60,7 @@ export function AskHr({ firstName, suggestions }: { firstName: string; suggestio
         )}
         {msgs.map((m, i) => (
           <div key={i} className={m.role === "user" ? "text-right" : ""}>
-            <p className={`inline-block max-w-[90%] whitespace-pre-wrap rounded-lg px-3 py-2 text-left text-sm ${m.role === "user" ? "text-white" : m.error ? "bg-red-50 text-red-800" : "bg-slate-100"}`} style={m.role === "user" ? { background: "var(--interactive)" } : undefined}>{m.content}</p>
+            <p className={`inline-block max-w-[90%] whitespace-pre-wrap rounded-lg px-3 py-2 text-left text-sm ${m.role === "user" ? "text-white" : m.error ? "bg-red-50 text-red-800" : "bg-slate-100"}`} style={m.role === "user" ? { background: "var(--accent)" } : undefined}>{m.content}</p>
             {m.drafts?.map((dr, j) => <DraftCard key={j} draft={dr} />)}
           </div>
         ))}

@@ -7,19 +7,20 @@
 ## Product
 
 - **Name:** Konkan People
-- **Logo:** a simple coastal wave mark next to the wordmark, in deep teal
+- **Logo:** a simple coastal wave mark next to the wordmark, in pink on the black sidebar
 - **Direction:** functional and calm. An employee can check in and see their leave balance on the dashboard without clicking anything else.
 
 ## Colour tokens
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| primary | `#123B46` | Sidebar, headings, logo |
-| interactive | `#13776F` | Buttons, links, focus ring (5.4:1 on white) |
-| page | `#F4F7F8` | Page background |
+| primary | `#0B0B14` (black) | Sidebar, headings |
+| interactive | `#BE185D` (pink) | Buttons, active nav item (6.0:1 with white text) |
+| accent | `#1D4ED8` (blue) | Links, focus ring, key figures (6.7:1 on white) |
+| page | `#F8F6FB` | Page background |
 | surface | `#FFFFFF` | Cards, tables |
-| text | `#1E293B` | Body text (13.6:1 on page) |
-| border | `#E2E8F0` | Dividers, inputs |
+| text | `#1E1B2E` | Body text (13.6:1 on page) |
+| border | `#E4DFF0` | Dividers, inputs |
 
 ## Status tokens
 

@@ -34,7 +34,7 @@ export const btn = "inline-flex items-center justify-center rounded px-3 py-2 te
 export const btnPrimary = `${btn} bg-[var(--interactive)] hover:brightness-95`;
 export const btnSecondary = "inline-flex items-center justify-center rounded border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50 disabled:opacity-60";
 export const btnDanger = `${btn} bg-red-700 hover:brightness-95`;
-export const input = "w-full rounded border bg-white px-2 py-2 text-sm focus:outline-2 focus:outline-[var(--interactive)]";
+export const input = "w-full rounded border bg-white px-2 py-2 text-sm focus:outline-2 focus:outline-[var(--accent)]";
 export function Field({ label, error, children, hint }: { label: string; error?: string; children: ReactNode; hint?: string }) {
   return (
     <label className="block text-sm">
@@ -49,7 +49,7 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
   return (
     <div className="rounded-lg border bg-white p-3" style={{ borderColor: "var(--border)" }}>
       <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>{value}</p>
+      <p className="text-2xl font-bold" style={{ color: "var(--accent)" }}>{value}</p>
       {sub && <p className="text-xs text-slate-600">{sub}</p>}
     </div>
   );

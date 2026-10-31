@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <header className="flex items-center justify-between border-b bg-white px-4 py-2" style={{ borderColor: "var(--border)" }}>
           <p className="text-sm text-slate-600">{formatIST(new Date(), { dateStyle: "full" })} · IST</p>
           <div className="flex items-center gap-3">
-            <a href="/profile" className="text-sm font-medium" style={{ color: "var(--interactive)" }}>{v.fullName}</a>
+            <a href="/profile" className="text-sm font-medium" style={{ color: "var(--accent)" }}>{v.fullName}</a>
             <UserButton />
           </div>
         </header>

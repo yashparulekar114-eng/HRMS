@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #123b46;
-  --interactive: #13776f;
-  --page: #f4f7f8;
+  --primary: #0b0b14; /* black: sidebar, headings */
+  --interactive: #be185d; /* pink: buttons (white text 6.0:1) */
+  --accent: #1d4ed8; /* blue: links, focus ring, key figures (6.7:1 on white) */
+  --page: #f8f6fb;
   --surface: #ffffff;
-  --text: #1e293b;
-  --border: #e2e8f0;
+  --text: #1e1b2e;
+  --border: #e4dff0;
 }
 
 body {
